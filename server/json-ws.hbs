@@ -1,0 +1,18 @@
+{
+    "users": [
+        {{#repeat 100}}
+        {
+            "id": {{@index}},
+            "name": "{{firstName}} {{lastName}}",
+            "company": "{{company}}",
+            "email": "{{email}}",
+            "dob": "{{date '1900' '2000' 'YYYYMMDD'}}",
+            "address": "{{int 10 1000}} {{street}}",
+            "city": "{{city}}",
+            "optedin": {{boolean}},
+            "avatar": "{{@index}}.png",
+            "cellphone": "{{phone "+86 xxx xxxx xxxx"}}"
+        }
+        {{/repeat}}
+    ],
+}

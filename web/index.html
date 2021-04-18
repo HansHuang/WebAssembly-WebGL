@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en-us">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>WebAssembly + WebGL</title>
+    <link href="app.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="emscripten_border">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    </div>
+    <script>
+        Module = {
+            canvas: document.getElementById('canvas')
+        }
+    </script>
+    <script async type="text/javascript" src="app.js"></script>
+</body>
+
+</html>
