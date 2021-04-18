@@ -23,6 +23,6 @@ cd ..
 # run any static web server, or install below one
 # npm i -g reed-mock-server
 imock start mock-server.json 
-# browser http://localhost:3000
+# browse http://localhost:3000
 ```
 
