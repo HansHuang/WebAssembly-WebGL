@@ -2,16 +2,18 @@
 
 #include <stdio.h>
 
+#include <string>
+
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
 
+#include <GLES2/gl2.h>
+#include <GLFW/glfw3.h>
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-
-#include <GLES2/gl2.h>
-#include <GLFW/glfw3.h>
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -21,9 +23,8 @@
 #endif
 
 GLFWwindow* window;
-bool show_demo_window = true;
+bool show_demo_window = false;
 bool show_another_window = false;
-ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 #ifdef __EMSCRIPTEN__
 EM_JS(int, getCanvasWidth, (), {
@@ -34,9 +35,10 @@ EM_JS(int, getCanvasHeight, (), {
     return Module.canvas.height;
 });
 
-// EM_JS(void, callJs, (), {
-//   someJsFn();
-// });
+EM_JS(void, resizeCanvas, (), {
+    Module.resizeCanvas();
+});
+
 #endif
 
 void render() {
@@ -53,6 +55,15 @@ void render() {
     ImGui::NewFrame();
 
     {
+#ifdef __EMSCRIPTEN__
+#else
+
+        const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowViewport(rand());
+        ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 120, main_viewport->WorkPos.y + 120), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+#endif
+
         static float f = 0.0f;
         static int counter = 0;
 
@@ -63,13 +74,14 @@ void render() {
         ImGui::Checkbox("Another Window", &show_another_window);
 
         ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        ImGui::ColorEdit3("clear color", (float*)&clear_color);
+        // ImGui::ColorEdit3("clear color", (float*)&clear_color);
 
         if (ImGui::Button("Button")) counter++;
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
 
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+
         ImGui::End();
     }
 
@@ -90,14 +102,18 @@ void render() {
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+    // glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+#ifdef __EMSCRIPTEN__
+#else
     GLFWwindow* backup_current_context = glfwGetCurrentContext();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
     glfwMakeContextCurrent(backup_current_context);
+    glfwHideWindow(window);
+#endif
 
     glfwSwapBuffers(window);
 }
@@ -131,9 +147,13 @@ int init(int width, int height, const char* title) {
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+#ifdef __EMSCRIPTEN__
+#else
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     //io.ConfigViewportsNoAutoMerge = true;
+#endif
+
     //io.ConfigViewportsNoTaskBarIcon = true;
 
     ImGui::StyleColorsDark();
@@ -157,6 +177,10 @@ int init(int width, int height, const char* title) {
     io.Fonts->AddFontFromFileTTF("../misc/fonts/SourceCodePro-Regular.ttf", 32.0f);
     io.Fonts->AddFontDefault();
 
+#ifdef __EMSCRIPTEN__
+    resizeCanvas();
+#endif
+
     return 0;
 }
 
@@ -170,7 +194,7 @@ void dispose() {
 }
 
 int main(int, char**) {
-    if (init(1280, 600, "Demo OpenGL3 GLFW App")) return 1;
+    if (init(100, 100, "Demo OpenGL3 GLFW App")) return 1;
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(render, 0, 1);
