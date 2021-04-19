@@ -11,6 +11,7 @@
 #include <GLES2/gl2.h>
 #include <GLFW/glfw3.h>
 
+#include "blotter.cpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -23,8 +24,9 @@
 #endif
 
 GLFWwindow* window;
-bool show_demo_window = false;
-bool show_another_window = false;
+bool showDemoWidgets = false;
+bool showDemoBlotter = false;
+ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 #ifdef __EMSCRIPTEN__
 EM_JS(int, getCanvasWidth, (), {
@@ -38,7 +40,6 @@ EM_JS(int, getCanvasHeight, (), {
 EM_JS(void, resizeCanvas, (), {
     Module.resizeCanvas();
 });
-
 #endif
 
 void render() {
@@ -55,8 +56,7 @@ void render() {
     ImGui::NewFrame();
 
     {
-#ifdef __EMSCRIPTEN__
-#else
+#ifndef __EMSCRIPTEN__
 
         const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowViewport(rand());
@@ -64,37 +64,37 @@ void render() {
         ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
 #endif
 
-        static float f = 0.0f;
         static int counter = 0;
+        static bool show = true;
 
-        ImGui::Begin("Hello, world!");
+        ImGui::Begin("Hello, world!", &show, ImGuiWindowFlags_NoDocking);
 
-        ImGui::Text("This is some useful text.");
-        ImGui::Checkbox("Demo Window", &show_demo_window);
-        ImGui::Checkbox("Another Window", &show_another_window);
+        ImGui::NewLine();
+        ImGui::Checkbox("Demo Widgets", &showDemoWidgets);
+        ImGui::SameLine(0, 20);
+        ImGui::Checkbox("Demo Blotter", &showDemoBlotter);
 
-        ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-        // ImGui::ColorEdit3("clear color", (float*)&clear_color);
+        ImGui::NewLine();
+        ImGui::ColorEdit3("clear color", (float*)&clearColor);
 
+        ImGui::NewLine();
         if (ImGui::Button("Button")) counter++;
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
 
+        ImGui::BeginChild("blank", ImVec2(0, -ImGui::GetTextLineHeightWithSpacing()));
+        ImGui::EndChild();
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
         ImGui::End();
     }
 
-    if (show_demo_window) {
-        ImGui::ShowDemoWindow(&show_demo_window);
+    if (showDemoWidgets) {
+        ImGui::ShowDemoWindow(&showDemoWidgets);
     }
 
-    if (show_another_window) {
-        ImGui::Begin("Another Window", &show_another_window);
-        ImGui::Text("Hello from another window!");
-        if (ImGui::Button("Close Me"))
-            show_another_window = false;
-        ImGui::End();
+    if (showDemoBlotter) {
+        ShowDemoBlotter(&showDemoBlotter);
     }
 
     // Rendering
@@ -102,12 +102,11 @@ void render() {
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    // glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w);
+    glClearColor(clearColor.x * clearColor.w, clearColor.y * clearColor.w, clearColor.z * clearColor.w, clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-#ifdef __EMSCRIPTEN__
-#else
+#ifndef __EMSCRIPTEN__
     GLFWwindow* backup_current_context = glfwGetCurrentContext();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
@@ -147,8 +146,8 @@ int init(int width, int height, const char* title) {
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-#ifdef __EMSCRIPTEN__
-#else
+
+#ifndef __EMSCRIPTEN__
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     //io.ConfigViewportsNoAutoMerge = true;
