@@ -4,6 +4,7 @@
 EXE = app_opengl3
 LIB_DIR = libs
 SOURCES = main.cpp
+# SOURCES += blotter.cpp
 SOURCES += $(LIB_DIR)/imgui.cpp $(LIB_DIR)/imgui_demo.cpp $(LIB_DIR)/imgui_draw.cpp $(LIB_DIR)/imgui_tables.cpp $(LIB_DIR)/imgui_widgets.cpp
 SOURCES += $(LIB_DIR)/backends/imgui_impl_glfw.cpp $(LIB_DIR)/backends/imgui_impl_opengl3.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))

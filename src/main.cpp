@@ -61,13 +61,13 @@ void render() {
         const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowViewport(rand());
         ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 120, main_viewport->WorkPos.y + 120), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(400, 180), ImGuiCond_FirstUseEver);
 #endif
 
         static int counter = 0;
         static bool show = true;
 
-        ImGui::Begin("Hello, world!", &show, ImGuiWindowFlags_NoDocking);
+        ImGui::Begin("Hello, world!", &show, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar);
 
         ImGui::NewLine();
         ImGui::Checkbox("Demo Widgets", &showDemoWidgets);
@@ -75,9 +75,8 @@ void render() {
         ImGui::Checkbox("Demo Blotter", &showDemoBlotter);
 
         ImGui::NewLine();
-        ImGui::ColorEdit3("clear color", (float*)&clearColor);
-
-        ImGui::NewLine();
+        ImGui::ColorEdit3("clear color", (float*)&clearColor, ImGuiColorEditFlags_NoInputs);
+        ImGui::SameLine(0, 30);
         if (ImGui::Button("Button")) counter++;
         ImGui::SameLine();
         ImGui::Text("counter = %d", counter);
@@ -94,7 +93,7 @@ void render() {
     }
 
     if (showDemoBlotter) {
-        ShowDemoBlotter(&showDemoBlotter);
+        App::ShowDemoBlotter(&showDemoBlotter);
     }
 
     // Rendering
@@ -122,7 +121,6 @@ static void glfw_error_callback(int error, const char* description) {
 }
 
 int init(int width, int height, const char* title) {
-    // Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
@@ -133,14 +131,13 @@ int init(int width, int height, const char* title) {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 
-    // Create window with graphics context
     window = glfwCreateWindow(width, height, title, NULL, NULL);
     if (window == NULL)
         return 1;
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(1);  // Enable vsync
 
-    // Setup Dear ImGui context
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(2);  // limit to max 30 FPS
+
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
