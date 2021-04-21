@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include <random>
@@ -15,15 +16,14 @@ static void ShowDemoBlotter(bool* p_open);
 
 }
 static void writeTable(int start, int count);
-static char* randomStr(size_t len);
+static char* randomStr(size_t size);
 static void gerenateData(int size, int col);
+static long long timeInMilliseconds();
 
 static bool isVirtualization = true;
-static bool loadData = false;
+static bool loadData = true;
 static bool realtimeData = false;
-static int updateCounter = 0;
-// static time_t t = time(NULL);
-// static struct tm dataUpdatedTm = *localtime(&t);
+static long long dataUpdatedAt = timeInMilliseconds();
 
 static int dataSize = 10000;
 static int colCount = 10;
@@ -38,7 +38,7 @@ void App::ShowDemoBlotter(bool* p_open) {
     }
 
     PushItemWidth(-GetWindowWidth() * 0.25f);
-    Text("Currently all data is generated from memory");
+    Text("Simulate real-time data blotter. Currently all data is generated from memory");
     NewLine();
     Checkbox("Table Virtualization", &isVirtualization);
     SameLine(0, 20);
@@ -51,7 +51,7 @@ void App::ShowDemoBlotter(bool* p_open) {
 
     if (BeginTable("table1", colCount, flags)) {
         TableSetupScrollFreeze(0, 1);
-        char title[32];
+        char title[10];
         for (int i = 0; i < colCount; i++) {
             sprintf(title, "Col_%d", i);
             TableSetupColumn(title, ImGuiTableColumnFlags_WidthStretch);
@@ -59,22 +59,15 @@ void App::ShowDemoBlotter(bool* p_open) {
 
         TableHeadersRow();
         if (loadData) {
-            if (!dataSet) {
-                gerenateData(dataSize, colCount);
-            }
-            if (realtimeData) {
-                if (updateCounter >= 30) { //30 PFS/s
-                    gerenateData(dataSize, colCount);
-                    updateCounter = 0;
-                }
-                updateCounter++;
-                // struct tm tm = *localtime(&t);
-                // if (tm.tm_min >= dataUpdatedTm.tm_min && tm.tm_sec - dataUpdatedTm.tm_sec >= 1) {
-                //     gerenateData(dataSize, colCount);
-                //     dataUpdatedTm = *localtime(&t);
-                // }
-                // gerenateData(dataSize, colCount);
-            }
+            // if (!dataSet) {
+            //     gerenateData(dataSize, colCount);
+            // }
+            // if (realtimeData) {
+            //     long long now = timeInMilliseconds();
+            //     if (now - dataUpdatedAt >= 1000) {
+            //         gerenateData(dataSize, colCount);
+            //     }
+            // }
 
             if (isVirtualization) {
                 ImGuiListClipper clipper;
@@ -94,13 +87,12 @@ void App::ShowDemoBlotter(bool* p_open) {
 }
 
 void writeTable(int start, int count) {
-    // const char* str = dynamicData ? randomStr(rand() & 20) : "Cell";
     for (int row = start; row < count; row++) {
         TableNextRow();
         for (int column = 0; column < colCount; column++) {
             TableSetColumnIndex(column);
-            // Text("%s %d %d", str, column, row);
-            Text(dataSet[row][column]);
+            Text("%s %d %d %d", "Cell", rand() % 10000, column, row);
+            // Text(dataSet[row][column]);
         }
     }
 }
@@ -124,24 +116,25 @@ void gerenateData(int size, int col) {
         }
 
         for (int j = 0; j < col; j++) {
-            data[i][j] = randomStr(rand() & 10);
+            data[i][j] = randomStr(rand() % 100);
         }
     }
     dataSet = data;
+    dataUpdatedAt = timeInMilliseconds();
 }
 
-char* randomStr(size_t len) {
-    static char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
-    char* result = NULL;
-
-    if (!len) return result;
-
-    result = (char*)malloc(sizeof(char) * (len + 1));
-    if (!result) return result;
-
-    for (size_t i = 0; i < len; i++) {
-        int key = rand() % (int)(sizeof(charset) - 1);
-        result[i] = charset[key];
+char* randomStr(size_t size) {
+    char* str = new char[size + 1];
+    for (int i = 0; i < size; ++i) {
+        str[i] = '0' + rand() % 72;
     }
-    return result;
+    str[size] = '\0';
+    return str;
+}
+
+long long timeInMilliseconds() {
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    return (((long long)tv.tv_sec) * 1000) + (tv.tv_usec / 1000);
 }

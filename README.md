@@ -25,4 +25,5 @@ cd ..
 imock start mock-server.json 
 # browse http://localhost:3000
 ```
+Web demo could be found here: [https://hanshuang.github.io/WASM/](https://hanshuang.github.io/WASM/)
 

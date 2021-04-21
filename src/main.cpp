@@ -1,7 +1,6 @@
 
 
 #include <stdio.h>
-
 #include <string>
 
 #ifdef __EMSCRIPTEN__
@@ -88,7 +87,7 @@ void render() {
 
         BeginChild("blank", ImVec2(0, -GetTextLineHeightWithSpacing()));
         EndChild();
-        Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / GetIO().Framerate, GetIO().Framerate);
+        Text("Application average %.2f ms/frame (%.1f FPS)", 1000.0f / GetIO().Framerate, GetIO().Framerate);
 
         End();
     }
