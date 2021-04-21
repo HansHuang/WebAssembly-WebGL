@@ -15,6 +15,7 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+using namespace ImGui;
 
 // [Win32] Our example includes a copy of glfw3.lib pre-compiled with VS2010 to maximize ease of testing and compatibility with old VS compilers.
 // To link with VS2010-era libraries, VS2015+ requires linking with legacy_stdio_definitions.lib, which we do using this pragma.
@@ -27,6 +28,7 @@ GLFWwindow* window;
 bool showDemoWidgets = false;
 bool showDemoBlotter = false;
 ImVec4 clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+bool quitApp = false;
 
 #ifdef __EMSCRIPTEN__
 EM_JS(int, getCanvasWidth, (), {
@@ -53,43 +55,46 @@ void render() {
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
+    NewFrame();
 
     {
 #ifndef __EMSCRIPTEN__
-
-        const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowViewport(rand());
-        ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 120, main_viewport->WorkPos.y + 120), ImGuiCond_FirstUseEver);
-        ImGui::SetNextWindowSize(ImVec2(400, 180), ImGuiCond_FirstUseEver);
+        const ImGuiViewport* main_viewport = GetMainViewport();
+        SetNextWindowViewport(rand());
+        SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 120, main_viewport->WorkPos.y + 120), ImGuiCond_FirstUseEver);
 #endif
+        SetNextWindowSize(ImVec2(400, 180), ImGuiCond_FirstUseEver);
 
         static int counter = 0;
         static bool show = true;
 
-        ImGui::Begin("Hello, world!", &show, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar);
+        Begin("Hello, world!", &show, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar);
 
-        ImGui::NewLine();
-        ImGui::Checkbox("Demo Widgets", &showDemoWidgets);
-        ImGui::SameLine(0, 20);
-        ImGui::Checkbox("Demo Blotter", &showDemoBlotter);
+        NewLine();
+        Checkbox("Demo Widgets", &showDemoWidgets);
+        SameLine(0, 20);
+        Checkbox("Demo Blotter", &showDemoBlotter);
 
-        ImGui::NewLine();
-        ImGui::ColorEdit3("clear color", (float*)&clearColor, ImGuiColorEditFlags_NoInputs);
-        ImGui::SameLine(0, 30);
-        if (ImGui::Button("Button")) counter++;
-        ImGui::SameLine();
-        ImGui::Text("counter = %d", counter);
+        NewLine();
+        ColorEdit3("clear color", (float*)&clearColor, ImGuiColorEditFlags_NoInputs);
+        SameLine(0, 30);
+        if (Button("Button")) counter++;
+        SameLine();
+        Text("counter = %d", counter);
+#ifndef __EMSCRIPTEN__
+        SameLine(0, 10);
+        if (Button("Quit")) quitApp = true;
+#endif
 
-        ImGui::BeginChild("blank", ImVec2(0, -ImGui::GetTextLineHeightWithSpacing()));
-        ImGui::EndChild();
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        BeginChild("blank", ImVec2(0, -GetTextLineHeightWithSpacing()));
+        EndChild();
+        Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / GetIO().Framerate, GetIO().Framerate);
 
-        ImGui::End();
+        End();
     }
 
     if (showDemoWidgets) {
-        ImGui::ShowDemoWindow(&showDemoWidgets);
+        ShowDemoWindow(&showDemoWidgets);
     }
 
     if (showDemoBlotter) {
@@ -97,18 +102,18 @@ void render() {
     }
 
     // Rendering
-    ImGui::Render();
+    Render();
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
     glClearColor(clearColor.x * clearColor.w, clearColor.y * clearColor.w, clearColor.z * clearColor.w, clearColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(GetDrawData());
 
 #ifndef __EMSCRIPTEN__
     GLFWwindow* backup_current_context = glfwGetCurrentContext();
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
+    UpdatePlatformWindows();
+    RenderPlatformWindowsDefault();
     glfwMakeContextCurrent(backup_current_context);
     glfwHideWindow(window);
 #endif
@@ -139,8 +144,8 @@ int init(int width, int height, const char* title) {
     glfwSwapInterval(2);  // limit to max 30 FPS
 
     IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    CreateContext();
+    ImGuiIO& io = GetIO();
     (void)io;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
@@ -152,11 +157,11 @@ int init(int width, int height, const char* title) {
 
     //io.ConfigViewportsNoTaskBarIcon = true;
 
-    ImGui::StyleColorsDark();
-    // ImGui::StyleColorsClassic();
+    StyleColorsDark();
+    // StyleColorsClassic();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
+    ImGuiStyle& style = GetStyle();
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
         style.WindowRounding = 0.0f;
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
@@ -183,7 +188,7 @@ int init(int width, int height, const char* title) {
 void dispose() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -196,7 +201,7 @@ int main(int, char**) {
     emscripten_set_main_loop(render, 0, 1);
     // glfwTerminate();
 #else
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window) && !quitApp) {
         render();
     }
     dispose();
