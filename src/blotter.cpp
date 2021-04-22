@@ -28,6 +28,8 @@ static long long dataUpdatedAt = timeInMilliseconds();
 static int dataSize = 10000;
 static int colCount = 10;
 static char*** dataSet = NULL;
+static int toFreeRow = 0;
+static int toFreeCol = 0;
 
 void App::ShowDemoBlotter(bool* p_open) {
     SetNextWindowSize(ImVec2(600, 400), ImGuiCond_FirstUseEver);
@@ -59,15 +61,12 @@ void App::ShowDemoBlotter(bool* p_open) {
 
         TableHeadersRow();
         if (loadData) {
-            // if (!dataSet) {
-            //     gerenateData(dataSize, colCount);
-            // }
-            // if (realtimeData) {
-            //     long long now = timeInMilliseconds();
-            //     if (now - dataUpdatedAt >= 1000) {
-            //         gerenateData(dataSize, colCount);
-            //     }
-            // }
+            if (realtimeData || !dataSet) {
+                long long now = timeInMilliseconds();
+                if (now - dataUpdatedAt >= 500) {  // update date 2x pre second
+                    gerenateData(dataSize, colCount);
+                }
+            }
 
             if (isVirtualization) {
                 ImGuiListClipper clipper;
@@ -91,14 +90,19 @@ void writeTable(int start, int count) {
         TableNextRow();
         for (int column = 0; column < colCount; column++) {
             TableSetColumnIndex(column);
-            Text("%s %d %d %d", "Cell", rand() % 10000, column, row);
-            // Text(dataSet[row][column]);
+            // Text("%s %d %d %d", "Cell", rand() % 10000, column, row);
+            Text(dataSet[row][column]);
         }
     }
 }
 
 void gerenateData(int size, int col) {
     if (dataSet) {
+        for (int i = 0; i < toFreeRow; i++) {
+            for (int j = 0; j < toFreeCol; j++) {
+                free(dataSet[i][j]);
+            }
+        }
         free(dataSet[0]);
         free(dataSet);
     }
@@ -119,13 +123,16 @@ void gerenateData(int size, int col) {
             data[i][j] = randomStr(rand() % 100);
         }
     }
+
     dataSet = data;
     dataUpdatedAt = timeInMilliseconds();
+    toFreeRow = size;
+    toFreeCol = col;
 }
 
 char* randomStr(size_t size) {
     char* str = new char[size + 1];
-    for (int i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         str[i] = '0' + rand() % 72;
     }
     str[size] = '\0';
