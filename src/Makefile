@@ -74,7 +74,7 @@ native: $(EXE)
 	@echo Build complete for $(ECHO_MESSAGE)
 
 web:
-	em++ $(SOURCES) -s ASSERTIONS=1 -std=c++14 -o $(WEB_OUTPUT) -lGL $(LIBS) $(WEBGL_VER) -O2 --preload-file ../misc $(USE_WASM) $(CXXFLAGS)
+	em++ $(SOURCES) -s ASSERTIONS=1 -std=c++14 -o $(WEB_OUTPUT) -lGL $(LIBS) $(WEBGL_VER) -Os --preload-file ../misc $(USE_WASM) $(CXXFLAGS)
 	@echo Build complete for Web
 
 $(EXE): $(OBJS)
